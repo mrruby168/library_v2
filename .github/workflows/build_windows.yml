@@ -20,10 +20,29 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Enable Windows desktop
+        run: flutter config --enable-windows-desktop
+
+      - name: Tạo project tạm để lấy windows folder chuẩn
+        run: |
+          flutter create --platforms=windows temp_project
+          # Xoá windows folder cũ (thiếu file), thay bằng bản chuẩn
+          Remove-Item -Recurse -Force windows
+          Copy-Item -Recurse temp_project\windows windows
+          Remove-Item -Recurse -Force temp_project
+        shell: pwsh
+
+      - name: Sửa tên app trong runner CMakeLists
+        run: |
+          (Get-Content windows\runner\CMakeLists.txt) `
+            -replace 'set\(BINARY_NAME ".*"\)', 'set(BINARY_NAME "ebook_reader")' |
+          Set-Content windows\runner\CMakeLists.txt
+        shell: pwsh
+
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build Windows
+      - name: Build Windows Release
         run: flutter build windows --release
 
       - name: Upload artifact
