@@ -26,16 +26,19 @@ class HighlightController extends TextEditingController {
     notifyListeners();
   }
 
-  void _validateHighlights() {
+  void validateHighlights() {
     _highlights.removeWhere(
       (r) => r.end > text.length || r.start < 0 || r.start >= r.end,
     );
+    notifyListeners();
   }
 
   @override
   set text(String newText) {
     super.text = newText;
-    _validateHighlights();
+    _highlights.removeWhere(
+      (r) => r.end > newText.length || r.start < 0 || r.start >= r.end,
+    );
   }
 
   @override
@@ -494,8 +497,6 @@ class _ReaderState extends ConsumerState<ReaderScreen> {
     );
   }
 
-  void Function() get validateHighlights => _ctrl.validateHighlights;
-
   Widget _buildStatusBar(_ThemeColors c) {
     final totalChars = _ctrl.text.length;
     final pages = ((totalChars / 1800).ceil()).clamp(1, 9999);
@@ -579,17 +580,6 @@ class _ReaderState extends ConsumerState<ReaderScreen> {
         child: Icon(icon, size: 16, color: color),
       ),
     );
-  }
-}
-
-extension on HighlightController {
-  void validateHighlights() {
-    highlights; // already validated in getter
-    // explicit call triggers _validateHighlights via set text trick:
-    // For safety, just call the parent class method via setter.
-    final t = text;
-    // ignore: invalid_use_of_protected_member
-    super.value = super.value.copyWith(text: t);
   }
 }
 
